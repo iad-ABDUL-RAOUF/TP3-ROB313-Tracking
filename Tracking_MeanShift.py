@@ -21,11 +21,11 @@ def define_ROI(event, x, y, flags, param):
 		roi_defined = True
 
 #cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
-# cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
+cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
-cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
 # cap = cv2.VideoCapture(0) #camera
 
 # take first frame of the video
@@ -34,7 +34,10 @@ ret,frame = cap.read()
 clone = frame.copy()
 cv2.namedWindow("First image")
 cv2.setMouseCallback("First image", define_ROI)
- 
+
+filePath = '../'
+
+
 # keep looping until the 'q' key is pressed
 while True:
 	# display the image and wait for a keypress
@@ -86,11 +89,21 @@ while(1):
         frame_tracked = cv2.rectangle(frame, (r,c), (r+h,c+w), (255,0,0) ,2)
         cv2.imshow('Sequence',frame_tracked)
 
+        #update histogram template
+        '''
+        roi = frame[c:c+w, r:r+h]
+        hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
+        roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
+        cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
+        '''
+
         k = cv2.waitKey(60) & 0xff
         if k == 27:
             break
         elif k == ord('s'):
-            cv2.imwrite('Frame_%04d.png'%cpt,frame_tracked)
+            cv2.imwrite(filePath+'Frame_%04d.png'%cpt,frame_tracked)
+            cv2.imwrite(filePath+'dst_%04d.png'%cpt,dst)
         cpt += 1
     else:
         break
