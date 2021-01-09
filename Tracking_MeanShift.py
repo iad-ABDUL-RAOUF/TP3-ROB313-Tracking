@@ -35,8 +35,10 @@ clone = frame.copy()
 cv2.namedWindow("First image")
 cv2.setMouseCallback("First image", define_ROI)
 
-#filePath = '../'
-filePath = '../newFig/'
+#madeleine
+#figPath = '../'
+#iad
+figPath = '../newFig/'
 
 #parameters
 histUpdtRate = 0.1
@@ -105,8 +107,8 @@ while(1):
         if k == 27:
             break
         elif k == ord('s'):
-            cv2.imwrite(filePath+'Frame_%04d.png'%cpt,frame_tracked)
-            cv2.imwrite(filePath+'dst_%04d.png'%cpt,dst)
+            cv2.imwrite(figPath+'Frame_%04d.png'%cpt,frame_tracked)
+            cv2.imwrite(figPath+'dst_%04d.png'%cpt,dst)
         cpt += 1
     else:
         break
