@@ -21,12 +21,12 @@ def define_ROI(event, x, y, flags, param):
 		roi_defined = True
 
 #cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
-cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
-#cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
-#cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
-#cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
-#cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
-#cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
+cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
+# cap = cv2.VideoCapture(0) #camera
 
 # take first frame of the video
 ret,frame = cap.read()
@@ -74,10 +74,10 @@ while(1):
     ret ,frame = cap.read()
     if ret == True:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-	# Backproject the model histogram roi_hist onto the 
-	# current image hsv, i.e. dst(x,y) = roi_hist(hsv(0,x,y))
+		# Backproject the model histogram roi_hist onto the 
+		# current image hsv, i.e. dst(x,y) = roi_hist(hsv(0,x,y))
         dst = cv2.calcBackProject([hsv],[0],roi_hist,[0,180],1)
-
+        cv2.imshow('Poids',dst)
         # apply meanshift to dst to get the new location
         ret, track_window = cv2.meanShift(dst, track_window, term_crit)
 
