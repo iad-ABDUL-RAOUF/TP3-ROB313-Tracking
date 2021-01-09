@@ -35,7 +35,11 @@ clone = frame.copy()
 cv2.namedWindow("First image")
 cv2.setMouseCallback("First image", define_ROI)
 
-filePath = '../'
+#filePath = '../'
+filePath = '../newFig/'
+
+#parameters
+histUpdtRate = 0.1
 
 
 # keep looping until the 'q' key is pressed
@@ -90,13 +94,12 @@ while(1):
         cv2.imshow('Sequence',frame_tracked)
 
         #update histogram template
-        '''
         roi = frame[c:c+w, r:r+h]
         hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
-        roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
+        new_roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
         cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
-        '''
+        roi_hist = (1-histUpdtRate)*roi_hist+histUpdtRate*new_roi_hist
 
         k = cv2.waitKey(60) & 0xff
         if k == 27:
