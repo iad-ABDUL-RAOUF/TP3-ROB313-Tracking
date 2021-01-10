@@ -59,8 +59,13 @@ while True:
 	# if the 'q' key is pressed, break from the loop
 	if key == ord("q"):
 		break
- 
+
+    
+
+
+
 track_window = (r,c,h,w)
+'''
 # set up the ROI for tracking
 roi = frame[c:c+w, r:r+h]
 # conversion to Hue-Saturation-Value space
@@ -71,8 +76,25 @@ hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
 # Marginal histogram of the Hue component
 roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
+'''
+
+########### grad version
+# calcul de l'histogramme de l'argument du gradient
+grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+grayRoi = grayFrame[c:c+w, r:r+h]
+Ix_roi = cv2.Sobel(grayRoi, -1, 1, 0, ksize=3)
+Iy_roi = cv2.Sobel(grayRoi, -1, 0, 1, ksize=3)
+normGrad_roi = np.float32(np.sqrt(Ix_roi*Ix_roi+Iy_roi*Iy_roi))
+argGrad_roi = np.float32(np.arctan2(Iy_roi,Ix_roi))
+mask = cv2.inRange(normGrad_roi, 0.1, 10)
+roi_hist = cv2.calcHist([argGrad_roi],[0],mask,[180],[-np.pi,np.pi])
+###########
+
+
+
 # Histogram values are normalised to [0,255]
 cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
+
 
 # Setup the termination criteria: either 10 iterations,
 # or move by less than 1 pixel
@@ -82,10 +104,21 @@ cpt = 1
 while(1):
     ret ,frame = cap.read()
     if ret == True:
+        '''
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 		# Backproject the model histogram roi_hist onto the 
 		# current image hsv, i.e. dst(x,y) = roi_hist(hsv(0,x,y))
         dst = cv2.calcBackProject([hsv],[0],roi_hist,[0,180],1)
+        '''
+        ########### grad version
+        grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        Ix = cv2.Sobel(grayFrame, -1, 1, 0, ksize=3)
+        Iy = cv2.Sobel(grayFrame, -1, 0, 1, ksize=3)
+        argGrad = np.float32(np.arctan2(Iy_roi,Ix_roi))
+        dst = cv2.calcBackProject([argGrad],[0],argGrad_roi,[-np.pi,np.pi],1) 
+        ###########
+        
+        
         cv2.imshow('Poids',dst)
         # apply meanshift to dst to get the new location
         ret, track_window = cv2.meanShift(dst, track_window, term_crit)
@@ -96,13 +129,15 @@ while(1):
         cv2.imshow('Sequence',frame_tracked)
 
         #update histogram template
-        roi = frame[c:c+w, r:r+h]
-        hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        # TODO grad version
+        '''
+        hsv_roi = hsv[c:c+w, r:r+h]
         mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
         new_roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
         cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
         roi_hist = (1-histUpdtRate)*roi_hist+histUpdtRate*new_roi_hist
-
+        '''
+        
         k = cv2.waitKey(60) & 0xff
         if k == 27:
             break
