@@ -21,8 +21,8 @@ def define_ROI(event, x, y, flags, param):
 		roi_defined = True
 
 #cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
-cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
-# cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
+cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
@@ -42,6 +42,7 @@ figPath = '../newFig/'
 
 #parameters
 histUpdtRate = 0.1
+chooseHist = 'grad' # 'grad', 'teinte'
 
 
 # keep looping until the 'q' key is pressed
@@ -65,32 +66,30 @@ while True:
 
 
 track_window = (r,c,h,w)
-'''
-# set up the ROI for tracking
-roi = frame[c:c+w, r:r+h]
-# conversion to Hue-Saturation-Value space
-# 0 < H < 180 ; 0 < S < 255 ; 0 < V < 255
-hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-# computation mask of the histogram:
-# Pixels with S<30, V<20 or V>235 are ignored 
-mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
-# Marginal histogram of the Hue component
-roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
-'''
-
-########### grad version
-# calcul de l'histogramme de l'argument du gradient
-grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-grayRoi = grayFrame[c:c+w, r:r+h]
-Ix_roi = cv2.Sobel(grayRoi, -1, 1, 0, ksize=3)
-Iy_roi = cv2.Sobel(grayRoi, -1, 0, 1, ksize=3)
-normGrad_roi = np.float32(np.sqrt(Ix_roi*Ix_roi+Iy_roi*Iy_roi))
-argGrad_roi = np.float32(np.arctan2(Iy_roi,Ix_roi))
-mask = cv2.inRange(normGrad_roi, 0.1, 10)
-roi_hist = cv2.calcHist([argGrad_roi],[0],mask,[180],[-np.pi,np.pi])
-###########
 
 
+if chooseHist == 'teinte':
+    # set up the ROI for tracking
+    roi = frame[c:c+w, r:r+h]
+    # conversion to Hue-Saturation-Value space
+    # 0 < H < 180 ; 0 < S < 255 ; 0 < V < 255
+    hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+    # computation mask of the histogram:
+    # Pixels with S<30, V<20 or V>235 are ignored 
+    mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
+    # Marginal histogram of the Hue component
+    roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
+
+if chooseHist == 'grad':
+    # calcul de l'histogramme de l'argument du gradient
+    grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    grayRoi = grayFrame[c:c+w, r:r+h]
+    Ix_roi = cv2.Sobel(grayRoi, cv2.CV_64F, 1, 0, ksize=3)
+    Iy_roi = cv2.Sobel(grayRoi, cv2.CV_64F, 0, 1, ksize=3)
+    normGrad_roi = np.float32(np.sqrt(Ix_roi*Ix_roi+Iy_roi*Iy_roi))
+    argGrad_roi = np.float32(np.arctan2(Iy_roi,Ix_roi))
+    mask = cv2.inRange(normGrad_roi, 100, 600)
+    roi_hist = cv2.calcHist([argGrad_roi],[0],mask,[180],[-np.pi,np.pi])
 
 # Histogram values are normalised to [0,255]
 cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
@@ -104,20 +103,19 @@ cpt = 1
 while(1):
     ret ,frame = cap.read()
     if ret == True:
-        '''
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-		# Backproject the model histogram roi_hist onto the 
-		# current image hsv, i.e. dst(x,y) = roi_hist(hsv(0,x,y))
-        dst = cv2.calcBackProject([hsv],[0],roi_hist,[0,180],1)
-        '''
-        ########### grad version
-        grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        Ix = cv2.Sobel(grayFrame, -1, 1, 0, ksize=3)
-        Iy = cv2.Sobel(grayFrame, -1, 0, 1, ksize=3)
-        argGrad = np.float32(np.arctan2(Iy_roi,Ix_roi))
-        dst = cv2.calcBackProject([argGrad],[0],argGrad_roi,[-np.pi,np.pi],1) 
-        ###########
         
+        if chooseHist == 'teinte':
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    		# Backproject the model histogram roi_hist onto the 
+    		# current image hsv, i.e. dst(x,y) = roi_hist(hsv(0,x,y))
+            dst = cv2.calcBackProject([hsv],[0],roi_hist,[0,180],1)
+
+        if chooseHist == 'grad':
+            grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            Ix = cv2.Sobel(grayFrame, cv2.CV_64F, 1, 0, ksize=3)
+            Iy = cv2.Sobel(grayFrame, cv2.CV_64F, 0, 1, ksize=3)
+            argGrad = np.float32(np.arctan2(Iy,Ix))
+            dst = np.uint8(cv2.calcBackProject([argGrad],[0],roi_hist,[-np.pi,np.pi],1))        
         
         cv2.imshow('Poids',dst)
         # apply meanshift to dst to get the new location
