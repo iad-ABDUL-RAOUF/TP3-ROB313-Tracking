@@ -22,10 +22,10 @@ def define_ROI(event, x, y, flags, param):
 
 #cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
-cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
-# cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
+cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
 # cap = cv2.VideoCapture(0) #camera
 
 # take first frame of the video
@@ -41,8 +41,8 @@ cv2.setMouseCallback("First image", define_ROI)
 figPath = '../newFig/'
 
 #parameters
-histUpdtRate = 0.1
-chooseHist = 'grad' # 'grad', 'teinte'
+histUpdtRate = 0.2
+chooseHist = 'teinte' # 'grad', 'teinte'
 
 
 # keep looping until the 'q' key is pressed
@@ -88,7 +88,7 @@ if chooseHist == 'grad':
     Iy_roi = cv2.Sobel(grayRoi, cv2.CV_64F, 0, 1, ksize=3)
     normGrad_roi = np.float32(np.sqrt(Ix_roi*Ix_roi+Iy_roi*Iy_roi))
     argGrad_roi = np.float32(np.arctan2(Iy_roi,Ix_roi))
-    mask = cv2.inRange(normGrad_roi, 100, 600)
+    mask = cv2.inRange(normGrad_roi, 30, 1000000)
     roi_hist = cv2.calcHist([argGrad_roi],[0],mask,[180],[-np.pi,np.pi])
 
 # Histogram values are normalised to [0,255]
@@ -127,14 +127,17 @@ while(1):
         cv2.imshow('Sequence',frame_tracked)
 
         #update histogram template
-        # TODO grad version
-        '''
-        hsv_roi = hsv[c:c+w, r:r+h]
-        mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
-        new_roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
-        cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
+        if chooseHist == 'teinte':
+            hsv_roi = hsv[c:c+w, r:r+h]
+            mask = cv2.inRange(hsv_roi, np.array((0.,30.,20.)), np.array((180.,255.,235.)))
+            new_roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
+        if chooseHist == 'grad': # TODO grad version
+            normGrad_roi = np.float32(np.sqrt(Ix[c:c+w, r:r+h]*Ix[c:c+w, r:r+h]+Iy[c:c+w, r:r+h]*Iy[c:c+w, r:r+h]))
+            argGrad_roi = argGrad[c:c+w, r:r+h]
+            mask = cv2.inRange(normGrad_roi, 30, 1000000)
+            new_roi_hist = cv2.calcHist([argGrad_roi],[0],mask,[180],[-np.pi,np.pi])
+        cv2.normalize(new_roi_hist,new_roi_hist,0,255,cv2.NORM_MINMAX)
         roi_hist = (1-histUpdtRate)*roi_hist+histUpdtRate*new_roi_hist
-        '''
         
         k = cv2.waitKey(60) & 0xff
         if k == 27:
