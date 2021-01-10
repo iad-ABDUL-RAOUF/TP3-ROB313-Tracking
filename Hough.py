@@ -35,7 +35,8 @@ def define_ROI(event, x, y, flags, param):
 
 # take first frame of the video
 ret,frame = cap.read()
-size = frame.shape()[0:2]
+size = frame.shape[0:2]
+print("size = ", size)
 # load the image, clone it, and setup the mouse callback function
 clone = frame.copy()
 cv2.namedWindow("First image")
@@ -55,6 +56,8 @@ while True:
 	# if the 'q' key is pressed, break from the loop
 	if key == ord("q"):
 		break
+
+print("Start computing")
 
 track_window = (r,c,h,w)
 # set up the ROI for tracking
@@ -83,11 +86,18 @@ while ret:
     if ret:
         #Computing the norm and argument of the gradient
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        Ix = cv2.Sobel(gray_roi, -1, 1, 0, ksize=3)
-        Iy = cv2.Sobel(gray_roi, -1, 0, 1, ksize=3)
+        Ix = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+        Iy = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
         normGrad = np.sqrt(Ix*Ix+Iy*Iy)
         argGrad = np.arctan2(Iy,Ix)
-
+        
+        argDisplay = np.float32(argGrad.copy())
+        argDisplay = np.floor((argDisplay+pi)*(255/(2*pi)))
+        print("####################################################################################################################################################################")
+        print("max = ",argDisplay.max())
+        print("min = ",argDisplay.min())
+        argDisplay = cv2.cvtColor(argDisplay,cv2.COLOR_GRAY2RGB)
+        cv2.imshow('Argument of gradient',argDisplay)
         #Initializing the matrix for the votes
         weights = np.zeros(size)
         #Computing the votes for the position of the "center" of roi
@@ -96,8 +106,14 @@ while ret:
                 if normGrad[i,j] > threshold:
                     index = floor((argGrad[i,j]+pi)*(nb_lines/(2*pi)))
                     for point in R[index]:
-                        weights[i+point[0],j+point[1]] += 1
+                        if 0<= i+point[0] <size[0] and 0<= j+point[1]<size[1]:
+                            weights[i+point[0],j+point[1]] += 1
+                else:
+                    argDisplay = cv2.circle(argDisplay, (i,j), 1, (0,0,255), -1)
         pos_roi = np.argwhere(weights==weights.max())[0]
+
+        #Display arg
+        cv2.imshow('Argument of gradient',argDisplay)
 
         #Updating ROI
         gray_roi = image[pos_roi[0]:pos_roi[0]+w, pos_roi[1]:pos_roi[1]+h]
