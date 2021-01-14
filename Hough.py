@@ -5,11 +5,11 @@ import itertools
 roi_defined = False
 
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
-# cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
+cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
-cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
 # cap = cv2.VideoCapture(0) #camera
 
 #madeleine
@@ -117,6 +117,10 @@ while ret:
         argDisplay = argGrad.copy()
         argDisplay = np.uint8(np.floor((argDisplay+np.pi)*(255/(2*np.pi))))
         argDisplay = cv2.cvtColor(argDisplay,cv2.COLOR_GRAY2BGR)
+
+        # argDisplay1 = argGrad.copy()
+        # argDisplay1 = np.uint8(np.floor((argDisplay1+np.pi)*(255/(2*np.pi))))
+        # argDisplay1 = cv2.cvtColor(argDisplay1,cv2.COLOR_GRAY2BGR)
         
         # find meanigfull structures
         isNormBigEnough = normGrad>threshold
@@ -150,7 +154,7 @@ while ret:
         #Display arg
         cv2.imshow('vote',np.uint8(255*(weights/weights.max())))
         cv2.imshow('Sequence',frame_tracked)
-        cv2.imshow('Argument of gradient',argDisplay)
+        # cv2.imshow('Argument of gradient',argDisplay1)
         cv2.imshow('norm gradient',np.uint8(255*(normGrad/normGrad.max())))
         
         k = cv2.waitKey(60) & 0xff
@@ -158,9 +162,10 @@ while ret:
             break
         elif k == ord('s'):
             cv2.imwrite(figPath+'Frame_%04d.png'%cpt,frame_tracked)
-            cv2.imwrite(figPath+'vote_%04d.png'%cpt,weights)
-            cv2.imwrite(figPath+'argGrad_%04d.png'%cpt,argDisplay)
-            cv2.imwrite(figPath+'normGrad_%04d.png'%cpt,normGrad)
+            cv2.imwrite(figPath+'vote_%04d.png'%cpt,np.uint8(255*(weights/weights.max())))
+            # cv2.imwrite(figPath+'argGrad_%04d.png'%cpt,argDisplay1)
+            cv2.imwrite(figPath+'argGradVotes_%04d.png'%cpt,argDisplay)
+            # cv2.imwrite(figPath+'normGrad_%04d.png'%cpt,normGrad)
         cpt += 1
     else:
         break

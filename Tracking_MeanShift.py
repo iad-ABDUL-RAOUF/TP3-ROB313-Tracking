@@ -20,12 +20,12 @@ def define_ROI(event, x, y, flags, param):
 		c = min(c,c2)  
 		roi_defined = True
 
-#cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/VOT-Ball.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Basket.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Car.mp4')
-# cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
+cap = cv2.VideoCapture('../Test-Videos/VOT-Sunshade.mp4')
 # cap = cv2.VideoCapture('../Test-Videos/VOT-Woman.mp4')
-cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
+# cap = cv2.VideoCapture('../Test-Videos/Antoine_Mug.mp4')
 # cap = cv2.VideoCapture(0) #camera
 
 # take first frame of the video
@@ -41,9 +41,9 @@ cv2.setMouseCallback("First image", define_ROI)
 figPath = '../newFig/'
 
 #parameters
-histUpdtRate = 0.2
-chooseHist = 'grad' # 'grad', 'teinte'
-thresholdGrad = 30
+histUpdtRate = 0
+chooseHist = 'teinte' # 'grad', 'teinte'
+thresholdGrad = 50
 
 
 # keep looping until the 'q' key is pressed
